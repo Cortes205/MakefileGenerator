@@ -18,11 +18,9 @@ fn main() {
 				println!("makegen: {} is not a known langauge code", curr);
 				std::process::exit(1);
 			}
-		} else if i > 2 {
-			// TODO: Header file flag
-
-			if curr[curr.len()-2..curr.len()] != *".c" {
-				println!("makegen: {} is an invalid file type - ensure source files have the extension .c", curr);
+		} else if i > 2 { 
+			if curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" {
+				println!("makegen: {} is an invalid file type - ensure source files have the extension .c or .h", curr);
 				std::process::exit(1);
 			}
 		}
@@ -30,36 +28,45 @@ fn main() {
 	
 	let mut objects : Vec<String> = Vec::new();
 	let mut sources : Vec<String> = Vec::new();
-	let mut obj_var : String = "OBJ = ".to_string();
+	let mut obj_var : String = "OBJ =".to_string();
 	let mut out_file : String = "OUT = ".to_string();
-	let mut prev : &str = "";
+	let mut header_files : String = "HEADS =".to_string();
 	for i in 2..args.len() {
 		let curr = &args[i];
 		if i == 2 {
 			out_file.push_str(curr);
-		} else if curr == "-head" {
-			prev = curr;
-			continue;
-		} else if prev == "-head" {
-			// TODO: After implementing -head flag as argument
 		} else {
-			sources.push(curr.to_string());
-			let mut obj_name : String = curr[..curr.len()-2].to_string();
-			obj_name.push_str(".o");
-			obj_var.push_str(&obj_name);
-			obj_var.push_str(" ");
-			objects.push(obj_name);
+			if curr[curr.len()-2..curr.len()] == *".c" {
+				sources.push(curr.to_string());
+				let mut obj_name : String = curr[..curr.len()-2].to_string();
+				obj_name.push_str(".o");
+				obj_var.push_str(" ");
+				obj_var.push_str(&obj_name);
+				objects.push(obj_name);
+			} else if curr[curr.len()-2..curr.len()] == *".h" {
+				header_files.push_str(" ");
+				header_files.push_str(curr);
+			}
 		}
 	} 
+
+	if sources.len() == 0 {
+		println!("makegen: no source files given");
+		std::process::exit(1);
+	}
 
 	// TODO: Error handling with files
 	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
 	file.set_len(0).unwrap();
-
+	
 	obj_var.push_str("\n");
 	file.write_all(obj_var.as_bytes()).unwrap();
 	out_file.push_str("\n");
-	file.write_all(out_file.as_bytes()).unwrap();	
+	file.write_all(out_file.as_bytes()).unwrap();
+	if header_files != "HEADS =" {
+		header_files.push_str("\n");
+		file.write_all(header_files.as_bytes()).unwrap();
+	}
 
 	file.write_all(b"CFLAGS = gcc -std=c99 -Wall -pedantic\n\n${OUT}: ${OBJ}\n\t${CFLAGS} ${OBJ} -o bin/${OUT}\n\n").unwrap();
 	
@@ -67,6 +74,9 @@ fn main() {
 		file.write_all(objects[i].as_bytes()).unwrap();
 		file.write_all(b": ").unwrap();
 		file.write_all(sources[i].as_bytes()).unwrap();
+		if header_files != "HEADS =" {
+			file.write_all(b" ${HEADS}").unwrap();
+		}
 		file.write_all(b"\n\t${CFLAGS} -c ").unwrap();
 		file.write_all(sources[i].as_bytes()).unwrap();
 		file.write_all(b"\n\n").unwrap();
