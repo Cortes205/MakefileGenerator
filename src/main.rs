@@ -18,8 +18,8 @@ fn main() {
 				println!("makegen: {} is not a known langauge code", curr);
 				std::process::exit(1);
 			}
-		} else if i > 2 { 
-			if curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" {
+		} else if i > 2 {
+			if curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
 				println!("makegen: {} is an invalid file type - ensure source files have the extension .c or .h", curr);
 				std::process::exit(1);
 			}
@@ -31,12 +31,20 @@ fn main() {
 	let mut obj_var : String = "OBJ =".to_string();
 	let mut out_file : String = "OUT = ".to_string();
 	let mut header_files : String = "HEADS =".to_string();
+	let mut flags : String = "CFLAGS = gcc".to_string();
 	for i in 2..args.len() {
 		let curr = &args[i];
 		if i == 2 {
 			out_file.push_str(curr);
 		} else {
-			if curr[curr.len()-2..curr.len()] == *".c" {
+			if curr.chars().nth(0) == Some('-') {
+				if curr == "-default" {
+					flags.push_str(" -std=c99 -Wall -pedantic");
+				} else {
+					flags.push_str(" ");		
+					flags.push_str(curr);
+				}
+			} else if curr[curr.len()-2..curr.len()] == *".c" {
 				sources.push(curr.to_string());
 				let mut obj_name : String = curr[..curr.len()-2].to_string();
 				obj_name.push_str(".o");
@@ -67,8 +75,9 @@ fn main() {
 		header_files.push_str("\n");
 		file.write_all(header_files.as_bytes()).unwrap();
 	}
+	file.write_all(flags.as_bytes()).unwrap();
 
-	file.write_all(b"CFLAGS = gcc -std=c99 -Wall -pedantic\n\n${OUT}: ${OBJ}\n\t${CFLAGS} ${OBJ} -o bin/${OUT}\n\n").unwrap();
+	file.write_all(b"\n\n${OUT}: ${OBJ}\n\t${CFLAGS} ${OBJ} -o bin/${OUT}\n\n").unwrap();
 	
 	for i in 0..objects.len() {	
 		file.write_all(objects[i].as_bytes()).unwrap();
