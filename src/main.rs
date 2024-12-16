@@ -46,7 +46,13 @@ fn main() {
 				}
 			} else if curr[curr.len()-2..curr.len()] == *".c" {
 				sources.push(curr.to_string());
-				let mut obj_name : String = curr[..curr.len()-2].to_string();
+				let mut start = 0;
+				for i in (0..curr.len()).rev() {
+					if curr.chars().nth(i) == Some('/') {
+						start = i+1;
+					}
+				}
+				let mut obj_name : String = curr[start..curr.len()-2].to_string();
 				obj_name.push_str(".o");
 				obj_var.push_str(" ");
 				obj_var.push_str(&obj_name);
