@@ -83,7 +83,7 @@ fn main() {
 	}
 	file.write_all(flags.as_bytes()).unwrap();
 
-	file.write_all(b"\n\n${OUT}: ${OBJ}\n\t${CFLAGS} ${OBJ} -o bin/${OUT}\n\n").unwrap();
+	file.write_all(b"\n\nall: ${OUT}\n\n${OUT}: ${OBJ}\n\t${CFLAGS} ${OBJ} -o bin/${OUT}\n\n").unwrap();
 	
 	for i in 0..objects.len() {	
 		file.write_all(objects[i].as_bytes()).unwrap();
