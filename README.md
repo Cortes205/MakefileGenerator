@@ -49,7 +49,7 @@ Otherwise, to make use of the tool, use the command:
 The order of arguments only matters for the first two.
 
 * -c indicates you are going to be compiling a C program (only option for now)
-* The target file must be the second argument
+* The target file must be the second argument (it will automatically be put into a folder named bin)
 * .c files, .h files, and compiler flags can be ordered in any way, but they follow a few rules:
 
 1. At least one .c file must be provided
@@ -62,7 +62,7 @@ Compilation flags will not be checked by the program, but you will evidently rec
 ### Example
 An example of running this program in any of your project directories:
 ```sh
-./makegen -c bin/program src/*.c -default include/*.h -lm
+./makegen -c program src/*.c -default include/*.h -lm
 ```
 The ordering of the last four arguments is odd, but the tool is robust
 and creates a correct makefile!
