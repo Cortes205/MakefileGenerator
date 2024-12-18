@@ -106,6 +106,7 @@ We can then check to see that it works and compiles our programs:
 * If any of your target files have errors your makefile will not be created, and you will be told
 which target has an error
 <img src="./assets/error.png">
+
 * If you do not specify compiler flags (for any targets) they will be left blank
 
 ### Runtime
