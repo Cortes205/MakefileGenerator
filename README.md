@@ -1,7 +1,7 @@
 # Makefile Generator
 CLI tool written in Rust to generate makefiles for compiling programs.
 
-This tool is ***unfinished*** and can currently only create a makefile for .c & .h files 
+This tool is ***unfinished*** but is fully functional in creating makefiles for .c & .h files as well as for multiple targets.
 
 Current Goals:
 * Avoid creating duplicate source file compilations
