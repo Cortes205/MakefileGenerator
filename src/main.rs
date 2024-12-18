@@ -1,9 +1,14 @@
 use std::io::Write;
 
 /**
-* Default flags global constant for easy access
+* Compiler flags when using the argument '-default'
 */
 const DEFAULT_FLAGS : &str = " -std=c99 -Wall -pedantic";
+
+/**
+* Whether or not to store target files in a folder named bin
+*/
+const BIN : bool = true;
 
 fn main() {
 	let args: Vec<String> = std::env::args().collect();
@@ -55,7 +60,10 @@ fn main() {
 		file.write_all(obj.as_bytes()).unwrap();
 		file.write_all(flags.as_bytes()).unwrap();
 		file.write_all(obj.as_bytes()).unwrap();
-		file.write_all(b" -o bin/").unwrap();
+		file.write_all(b" -o ").unwrap();
+		if BIN {
+			file.write_all(b"bin/").unwrap();
+		}
 		file.write_all(out.as_bytes()).unwrap();
 		file.write_all(b"\n\n").unwrap();
 			
@@ -74,7 +82,10 @@ fn main() {
 
 	file.write_all(b"clean:\n\trm *.o").unwrap();
 	for i in 1..objects.len()+1 {
-		let mut out : String = " bin/${OUT".to_string();
+		let mut out : String = " ${OUT".to_string();
+		if BIN {
+			out = " bin/${OUT".to_string();
+		}
 		out.push_str(&i.to_string());
 		out.push_str("}");
 		file.write_all(out.as_bytes()).unwrap();
