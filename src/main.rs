@@ -29,9 +29,11 @@ fn main() {
 	// TODO: Try to combine these next three loops somehow
 	// Write the all command for each target file
 	file.write_all(b"all:").unwrap();
-	for i in 1..objects.len()+1 {
+	for i in 0..objects.len() {
 		let mut out : String = " ${OUT".to_string();
-		out.push_str(&i.to_string());
+		if i != 0 {
+			out.push_str(&i.to_string());
+		}
 		file.write_all(out.as_bytes()).unwrap();
 		file.write_all(b"}").unwrap();
 	}
@@ -45,14 +47,16 @@ fn main() {
 		let mut flags : String = "\n\t${CFLAGS".to_string();
 		let mut heads : String = " ${HEADS".to_string();
 
-		let temp = i + 1;
-		out.push_str(&temp.to_string());
+		if i != 0 {
+			out.push_str(&i.to_string());
+			obj.push_str(&i.to_string());
+			flags.push_str(&i.to_string());
+			heads.push_str(&i.to_string());
+		}
+
 		out.push_str("}");
-		obj.push_str(&temp.to_string());
 		obj.push_str("}");
-		flags.push_str(&temp.to_string());
 		flags.push_str("}");
-		heads.push_str(&temp.to_string());
 		heads.push_str("}");
 
 		file.write_all(out.as_bytes()).unwrap();
@@ -81,12 +85,16 @@ fn main() {
 	}
 
 	file.write_all(b"clean:\n\trm *.o").unwrap();
-	for i in 1..objects.len()+1 {
+	for i in 0..objects.len() {
 		let mut out : String = " ${OUT".to_string();
 		if BIN {
 			out = " bin/${OUT".to_string();
 		}
-		out.push_str(&i.to_string());
+
+		if i != 0 {
+			out.push_str(&i.to_string());
+		}
+
 		out.push_str("}");
 		file.write_all(out.as_bytes()).unwrap();
 	}
@@ -118,11 +126,12 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 	let mut header_files : String = "HEADS".to_string();
 	let mut flags : String = "CFLAGS".to_string();
 
-	let temp = target + 1;
-	obj_var.push_str(&temp.to_string());
-    out_file.push_str(&temp.to_string());
-	header_files.push_str(&temp.to_string());
-	flags.push_str(&temp.to_string());
+	if target != 0 {
+		obj_var.push_str(&target.to_string());
+    	out_file.push_str(&target.to_string());
+		header_files.push_str(&target.to_string());
+		flags.push_str(&target.to_string());
+	}
 
 	obj_var.push_str(" =");
     out_file.push_str(" = ");
