@@ -14,7 +14,21 @@ fn main() {
 	let args: Vec<String> = std::env::args().collect();
 
 	if args.len() > 1 && args[1] == "-h" {
-		println!("help menu");
+		println!("makegen: create a makefile for C source files & header files with compiling flags\n");
+		println!("Usage: makegen [language code] [target name] [source file(s)] ...");
+		println!("\tIf necessary: ... [header file(s)] [compiler flag(s)]");
+
+		println!("\nLanguage Codes:\n\t-c\t\t C programming language");
+
+		println!("\nTarget Name:\n\tThe wanted name for the executable of the program\n\n\tEx: a.out");
+
+		println!("\nSource File(s):\n\tAll necessary files for the program with the appropriate file extension\n\n\tEx: .c for C programs");
+
+		println!("\nHeader File(s):\n\tAll necessary .h files for the program");
+
+		println!("\nCompiler Flag(s):\n\tAppropriate compiler flags for the programming language you are compiling.\n\n\t-default (for C programs)\t\t-std=c99 -Wall -pedantic");
+
+		println!("\nC Example: makegen -c a.out main.c functions.c header.h -std=c99 -Wall");
 		std::process::exit(1);
 	} 
 
