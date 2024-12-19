@@ -37,7 +37,7 @@ rustc src/main.rs -o makegen
 
 Now you can move this tool to any of your project directories and use it!
 
-For the help menu (when it's created) use the command:
+For the help menu use the command:
 ```sh
 ./makegen -h
 ```
