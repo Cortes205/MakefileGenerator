@@ -48,9 +48,9 @@ Input the command:
 ```sh
 echo '<the directory>' | sudo tee -a /etc/paths
 ```
-You will need to enter your computers password. Afterward, restart your terminal.
+You will need to enter your computer's password. Afterward, restart your terminal.
 
-Now you can use this tool anywhere in the terminal!
+Now you can use this tool anywhere!
 
 For the help menu use the command:
 ```sh
@@ -83,7 +83,7 @@ Compilation flags will not be checked by the tool, but you will evidently receiv
 ### Demonstrations
 Both of these demonstrations are being done with my old C assignments.
 
-*Note*: These demonstrations were done without the tool in the command path; this is why I used './makegen' as opposed to just 'makegen'
+**Note**: These demonstrations were done without the tool in the command path; this is why I used './makegen' as opposed to just 'makegen'
 #### An example of using this tool in a project directory for one target:
 Assume we have the following in our directory:
 <img src="./assets/ex1p1.png">
