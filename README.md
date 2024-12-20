@@ -1,14 +1,14 @@
 # Makefile Generator
 CLI tool written in Rust to generate makefiles for compiling programs.
 
-This tool is ***unfinished*** but is fully functional in creating makefiles for .c & .h files as well as for multiple targets.
+This tool is ***unfinished*** but is fully functional in creating makefiles for C and C++ programs.
 
 Current Goals:
 * Avoid creating duplicate source file compilations
 * Learn more about Rust file handling and refactor the code
 * Refactor loops in the main function
 * Learn about the command path on macOS (allow for accessibility anywhere)
-* Allow for other languages to be used (c++, asm, rust, etc.)
+* Allow for some other languages to be used (asm, rust, etc.)
 
 ## Setup
 ### Project Folder
@@ -44,29 +44,29 @@ For the help menu use the command:
 
 Otherwise, to make use of the tool, use the command:
 ```sh
-./makegen -c <target filename> <.c files> <.h files> -<flags>
+./makegen -c <target filename> <source files> <header files> -<flags>
 ```
 
 If you'd like to create multiple targets, use the '-new' command then follow the same argument format. Example:
 ```sh
-./makegen -c <target filename> <.c files> <.h files> -<flags> -new -c <second target> <.c files> <.h files> -<flags>
+./makegen -c <target filename> <source files> <header files> -<flags> -new -c <second target> <source files> <header files> -<flags>
 ```
 
 The order of arguments only matters for the first two.
 
-* -c indicates you are going to be compiling a C program (only option for now)
+* -c indicates you are going to be compiling a C program (another option is -cpp for C++)
 * The target file must be the second argument (it will automatically be put into a folder named bin)
-* .c files, .h files, and compiler flags can be ordered in any way, but they follow a few rules:
+* source files, header files, and compiler flags can be ordered in any way, but they follow a few rules:
 
-1. At least one .c file must be provided
-2. Non .c or .h files will cause the program to exit
+1. At least one source file must be provided
+2. Source files that do not match the given language code or non .h files will cause the tool to halt
 3. Any compiler flags must have a preceding '-' (much like actual compilation)
-4. Using the flag "-default" will use the flags: "-std=c99 -Wall -pedantic"
+4. Using the flag "-default" will use predertemined flags depending on the language (see 'makegen -h' for more info')
 
 Compilation flags will not be checked by the program, but you will evidently receive an error when trying to run the makefile!
 
 ### Demonstrations
-Both of these demonstrations are being done with my old assignments.
+Both of these demonstrations are being done with my old C assignments.
 #### An example of using this tool in a project directory for one target:
 Assume we have the following in our directory:
 <img src="./assets/ex1p1.png">
