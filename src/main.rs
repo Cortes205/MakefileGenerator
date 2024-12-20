@@ -14,21 +14,25 @@ fn main() {
 	let args: Vec<String> = std::env::args().collect();
 
 	if args.len() > 1 && args[1] == "-h" {
-		println!("makegen: create a makefile for C source files & header files with compiling flags\n");
+		println!("makegen: create a makefile for C/C++ source files & header files with compiling flags\n");
 		println!("Usage: makegen [language code] [target name] [source file(s)] ...");
-		println!("\tIf necessary: ... [header file(s)] [compiler flag(s)]");
+		println!("\tIf necessary: ... [header file(s)] [compiler flag(s)] [extra target(s)] ...");
 
-		println!("\nLanguage Codes:\n\t-c\t\t C programming language");
+		println!("\nLanguage Codes:\n\t-c\t\tC programming language\n\t-cpp\t\tC++ programming language");
 
 		println!("\nTarget Name:\n\tThe wanted name for the executable of the program\n\n\tEx: a.out");
 
-		println!("\nSource File(s):\n\tAll necessary files for the program with the appropriate file extension\n\n\tEx: .c for C programs");
+		println!("\nSource File(s):\n\tAll necessary files for the program with the appropriate file extension\n\n\t.c for C programs\n\t.cpp for C++ programs");
 
 		println!("\nHeader File(s):\n\tAll necessary .h files for the program");
 
-		println!("\nCompiler Flag(s):\n\tAppropriate compiler flags for the programming language you are compiling.\n\n\t-default (for C programs)\t\t-std=c99 -Wall -pedantic");
+		println!("\nCompiler Flag(s):\n\tAppropriate compiler flags for the programming language you are compiling.\n\n\t-default (for C programs)\t\t-std=c99 -Wall -pedantic\n\t-default (for C++ programs)\t\t-std=c++1z -Wall -pedantic");
 
-		println!("\nC Example: makegen -c a.out main.c functions.c header.h -std=c99 -Wall");
+		println!("\nExtra Target(s):\n\tArguments for another program\n\t-new\t\tSpecify that arguments after will be for another program\n\n\tNext arguments follow the same procedure ([language code] [target name] etc.)");
+
+		println!("\nC Example: makegen -c a.out main.c functions.c header.h -std=c99 -Wall\nC++ Example: makegen -cpp myProgram -default header.h main.cpp functions.cpp");
+
+		println!("\nArgument order only matters for language code and target name");
 		std::process::exit(1);
 	} 
 
@@ -142,13 +146,13 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 
 	if target != 0 {
 		obj_var.push_str(&target.to_string());
-    	out_file.push_str(&target.to_string());
+		out_file.push_str(&target.to_string());
 		header_files.push_str(&target.to_string());
 		flags.push_str(&target.to_string());
 	}
 
 	obj_var.push_str(" =");
-    out_file.push_str(" = ");
+	out_file.push_str(" = ");
 	header_files.push_str(" =");
 
 	// Language code: 0 = C, 1 = C++
@@ -211,6 +215,7 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 					for i in (0..curr.len()).rev() {
 						if curr.chars().nth(i) == Some('/') {
 							start = i+1;
+							break;
 						}
 					}
 
@@ -248,17 +253,8 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 	file.write_all(obj_var.as_bytes()).unwrap();
 	out_file.push_str("\n");
 	file.write_all(out_file.as_bytes()).unwrap();
-
-	let mut temp : String = "HEADS".to_string();
-	if target != 0 {
-		temp.push_str(&target.to_string());
-	}
-	temp.push_str(" =");
-
-	if header_files != temp {
-		header_files.push_str("\n");
-		file.write_all(header_files.as_bytes()).unwrap();
-	}
+	header_files.push_str("\n");
+	file.write_all(header_files.as_bytes()).unwrap();
 	file.write_all(flags.as_bytes()).unwrap();
 	file.write_all(b"\n\n").unwrap();
 
