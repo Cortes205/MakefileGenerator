@@ -7,7 +7,6 @@ Current Goals:
 * Avoid creating duplicate source file compilations
 * Learn more about Rust file handling and refactor the code
 * Refactor loops in the main function
-* Learn about the command path on macOS (allow for accessibility anywhere)
 * Allow for some other languages to be used (asm, rust, etc.)
 
 ## Setup
@@ -28,28 +27,44 @@ Open the terminal in the program's directory
 
 Ensure you have the following:
 * [rustc](https://www.rust-lang.org/tools/install) (Rust compiler)
+* A folder named 'bin'
 
 To compile this program, use the following command:
 
 ```sh
-rustc src/main.rs -o makegen 
+rustc src/main.rs -o bin/makegen 
 ```
 
-Now you can move this tool to any of your project directories and use it!
+Next, change into the bin directory and input the command:
+```sh
+pwd
+```
+To display the full directory. Copy this directory!
+
+In order to access this tool from anywhere in your terminal, you will need to add the directory you copied to the command path.
+
+#### On MacOS
+Input the command:
+```sh
+echo '<the directory>' | sudo tee -a /etc/paths
+```
+You will need to enter your computers password. Afterward, restart your terminal.
+
+Now you can use this tool anywhere in the terminal!
 
 For the help menu use the command:
 ```sh
-./makegen -h
+makegen -h
 ```
 
 Otherwise, to make use of the tool, use the command:
 ```sh
-./makegen -c <target filename> <source files> <header files> -<flags>
+makegen -c <target filename> <source files> <header files> -<flags>
 ```
 
 If you'd like to create multiple targets, use the '-new' command then follow the same argument format. Example:
 ```sh
-./makegen -c <target filename> <source files> <header files> -<flags> -new -c <second target> <source files> <header files> -<flags>
+makegen -c <target filename> <source files> <header files> -<flags> -new -c <second target> <source files> <header files> -<flags>
 ```
 
 The order of arguments only matters for the first two.
@@ -67,6 +82,8 @@ Compilation flags will not be checked by the tool, but you will evidently receiv
 
 ### Demonstrations
 Both of these demonstrations are being done with my old C assignments.
+
+*Note*: These demonstrations were done without the tool in the command path; this is why I used './makegen' as opposed to just 'makegen'
 #### An example of using this tool in a project directory for one target:
 Assume we have the following in our directory:
 <img src="./assets/ex1p1.png">
