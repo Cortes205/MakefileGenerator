@@ -56,14 +56,14 @@ The order of arguments only matters for the first two.
 
 * -c indicates you are going to be compiling a C program (another option is -cpp for C++)
 * The target file must be the second argument (it will automatically be put into a folder named bin)
-* source files, header files, and compiler flags can be ordered in any way, but they follow a few rules:
+* Source files, header files, and compiler flags can be ordered in any way, but they follow a few rules:
 
 1. At least one source file must be provided
 2. Source files that do not match the given language code or non .h files will cause the tool to halt
 3. Any compiler flags must have a preceding '-' (much like actual compilation)
-4. Using the flag "-default" will use predertemined flags depending on the language (see 'makegen -h' for more info')
+4. Using the flag "-default" will use predertemined flags depending on the language (see 'makegen -h' for more info)
 
-Compilation flags will not be checked by the program, but you will evidently receive an error when trying to run the makefile!
+Compilation flags will not be checked by the tool, but you will evidently receive an error when trying to run the makefile!
 
 ### Demonstrations
 Both of these demonstrations are being done with my old C assignments.
