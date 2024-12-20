@@ -3,7 +3,7 @@ use std::io::Write;
 /**
 * Compiler flags when using the argument '-default'
 */
-const DEFAULT_FLAGS : &str = " -std=c99 -Wall -pedantic";
+const DEFAULT_FLAGS : [&str; 2] = [" -std=c99 -Wall -pedantic", " -std=c++1z -Wall -pedantic"];
 
 /**
 * Whether or not to store target files in a folder named bin
@@ -150,14 +150,22 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 	obj_var.push_str(" =");
     out_file.push_str(" = ");
 	header_files.push_str(" =");
-	flags.push_str(" = gcc");
+
+	// Language code: 0 = C, 1 = C++
+	let mut language : usize = 0;
 
 	// Loop through arguments, collect info, create variables
 	for i in 1..args.len() {
 		let curr = &args[i];
 		// First argument MUST be the language code
 		if i == 1 {
-			if curr != "-c" {
+			if curr == "-c" {
+				flags.push_str(" = gcc");
+				// No need to update language (0 by default)
+			} else if curr == "-cpp" {
+				flags.push_str(" = g++");
+				language = 1;
+			} else {
 				println!("makegen: {} is not a known langauge code", curr);
 				std::process::exit(1);
 			}
@@ -166,8 +174,11 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 			out_file.push_str(curr);
 		} else if i > 2 {
 			// If this argument doesn't have a valid file extension nor is a flag/command
-			if curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
+			if language == 0 && curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
 				println!("makegen: {} has an invalid file type - ensure source files have the extension .c or .h", curr);
+				std::process::exit(1);
+			} else if language == 1 && curr[curr.len()-4..curr.len()] != *".cpp" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
+				println!("makegen: {} has an invalid file type - ensure source files have the extension .cpp or .h", curr);
 				std::process::exit(1);
 			} else {
 				if curr.chars().nth(0) == Some('-') {
@@ -182,12 +193,16 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 						break;
 					// Default flags
 					} else if curr == "-default" {
-						flags.push_str(DEFAULT_FLAGS);
+						flags.push_str(DEFAULT_FLAGS[language]);
 					} else {
 						flags.push_str(" ");		
 						flags.push_str(curr);
 					}
-				} else if curr[curr.len()-2..curr.len()] == *".c" {
+				} else if curr[curr.len()-2..curr.len()] == *".h" {
+					// Format header file variable
+					header_files.push_str(" ");
+					header_files.push_str(curr);
+				} else {
 					// Assign current source file to current target
 					sources[target].push(curr.to_string());
 
@@ -200,19 +215,20 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 					}
 
 					// Format individual object name and object list variable
-					let mut obj_name : String = curr[start..curr.len()-2].to_string();
+					let mut obj_name : String = "".to_string();
+					if language == 0 {
+						obj_name = curr[start..curr.len()-2].to_string();
+					} else if language == 1 {
+						obj_name = curr[start..curr.len()-4].to_string();
+					}
 					obj_name.push_str(".o");
 					obj_var.push_str(" ");
 					obj_var.push_str(&obj_name);
 
 					// Assign current object to current target
 					objects[target].push(obj_name);
-				} else if curr[curr.len()-2..curr.len()] == *".h" {
-					// Format header file variable
-					header_files.push_str(" ");
-					header_files.push_str(curr);
 				}
-			}
+			}	
 		}
 
 		/* The loop only makes it to the end if there are no more new targets
@@ -232,7 +248,14 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 	file.write_all(obj_var.as_bytes()).unwrap();
 	out_file.push_str("\n");
 	file.write_all(out_file.as_bytes()).unwrap();
-	if header_files != "HEADS =" {
+
+	let mut temp : String = "HEADS".to_string();
+	if target != 0 {
+		temp.push_str(&target.to_string());
+	}
+	temp.push_str(" =");
+
+	if header_files != temp {
 		header_files.push_str("\n");
 		file.write_all(header_files.as_bytes()).unwrap();
 	}
