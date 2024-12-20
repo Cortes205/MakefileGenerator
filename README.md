@@ -83,7 +83,7 @@ Compilation flags will not be checked by the tool, but you will evidently receiv
 ### Demonstrations
 Both of these demonstrations are being done with my old C assignments.
 
-**Note**: These demonstrations were done without the tool in the command path; this is why I used './makegen' as opposed to just 'makegen'
+**Note**: These demonstrations were done without the tool in the command path; this is why I use './makegen' as opposed to just 'makegen'
 #### An example of using this tool in a project directory for one target:
 Assume we have the following in our directory:
 <img src="./assets/ex1p1.png">
