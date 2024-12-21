@@ -59,6 +59,7 @@ fn main() {
 
 	// Write the target files + all source files underneath
 	// TODO: Avoid writing duplicate source file compilations - Thinking HashMap
+	let mut all_outs : String = "".to_string();
 	for i in 0..objects.len() {
 		let mut out : String = "${OUT".to_string();
 		let mut obj : String = " ${OBJ".to_string();
@@ -77,6 +78,7 @@ fn main() {
 		flags.push_str("}");
 		heads.push_str("}");
 
+		// Compilation of target
 		file.write_all(out.as_bytes()).unwrap();
 		file.write_all(b":").unwrap();
 		file.write_all(obj.as_bytes()).unwrap();
@@ -88,7 +90,8 @@ fn main() {
 		}
 		file.write_all(out.as_bytes()).unwrap();
 		file.write_all(b"\n\n").unwrap();
-			
+		
+		// Compilation of source files
 		for j in 0..objects[i].len() {	
 			file.write_all(objects[i][j].as_bytes()).unwrap();
 			file.write_all(b": ").unwrap();
@@ -100,22 +103,16 @@ fn main() {
 			file.write_all(b"\n\n").unwrap();
 		}
 
+		// Create list of targets for clean command
+		all_outs.push_str(" ");
+		if BIN {
+			all_outs.push_str("bin/");
+		}
+		all_outs.push_str(&out);
 	}
 
 	file.write_all(b"clean:\n\trm *.o").unwrap();
-	for i in 0..objects.len() {
-		let mut out : String = " ${OUT".to_string();
-		if BIN {
-			out = " bin/${OUT".to_string();
-		}
-
-		if i != 0 {
-			out.push_str(&i.to_string());
-		}
-
-		out.push_str("}");
-		file.write_all(out.as_bytes()).unwrap();
-	}
+	file.write_all(all_outs.as_bytes()).unwrap();
 }
 
 /**
