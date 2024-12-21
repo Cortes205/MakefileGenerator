@@ -11,42 +11,23 @@ const DEFAULT_FLAGS : [&str; 2] = [" -std=c99 -Wall -pedantic", " -std=c++1z -Wa
 const BIN : bool = true;
 
 fn main() {
-	let args: Vec<String> = std::env::args().collect();
+	let args : Vec<String> = std::env::args().collect();
 
 	if args.len() > 1 && args[1] == "-h" {
-		println!("makegen: create a makefile for C/C++ source files & header files with compiling flags\n");
-		println!("Usage: makegen [language code] [target name] [source file(s)] ...");
-		println!("\tIf necessary: ... [header file(s)] [compiler flag(s)] [extra target(s)] ...");
-
-		println!("\nLanguage Codes:\n\t-c\t\tC programming language\n\t-cpp\t\tC++ programming language");
-
-		println!("\nTarget Name:\n\tThe wanted name for the executable of the program\n\n\tEx: a.out");
-
-		println!("\nSource File(s):\n\tAll necessary files for the program with the appropriate file extension\n\n\t.c for C programs\n\t.cpp for C++ programs");
-
-		println!("\nHeader File(s):\n\tAll necessary .h files for the program");
-
-		println!("\nCompiler Flag(s):\n\tAppropriate compiler flags for the programming language you are compiling.\n\n\t-default (for C programs)\t\t-std=c99 -Wall -pedantic\n\t-default (for C++ programs)\t\t-std=c++1z -Wall -pedantic");
-
-		println!("\nExtra Target(s):\n\tArguments for another program\n\t-new\t\tSpecify that arguments after will be for another program\n\n\tNext arguments follow the same procedure ([language code] [target name] etc.)");
-
-		println!("\nC Example: makegen -c a.out main.c functions.c header.h -std=c99 -Wall\nC++ Example: makegen -cpp myProgram -default header.h main.cpp functions.cpp");
-
-		println!("\nArgument order only matters for language code and target name");
-		std::process::exit(1);
+		help_menu();
 	} 
 
 	let objects : &mut Vec<Vec<String>> = &mut Vec::new();
 	let sources : &mut Vec<Vec<String>> = &mut Vec::new();
-
-	// TODO: Error handling with files
-	
+		
 	create_targets(args, objects, sources, 0);
 
+	// TODO: Error handling with files
 	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
 
 
-	// TODO: Try to combine these next three loops somehow
+	// TODO: Try to combine these next two loops somehow
+
 	// Write the all command for each target file
 	file.write_all(b"all:").unwrap();
 	for i in 0..objects.len() {
@@ -115,6 +96,7 @@ fn main() {
 
 	file.write_all(b"clean:\n\trm *.o").unwrap();
 	file.write_all(all_outs.as_bytes()).unwrap();
+	drop(file);
 }
 
 /**
@@ -259,4 +241,30 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 	file.write_all(flags.as_bytes()).unwrap();
 	file.write_all(b"\n\n").unwrap();
 	drop(file);	
+}
+
+/**
+* Print the help menu on function call
+*/
+fn help_menu() {
+	println!("makegen: create a makefile for C/C++ source files & header files with compiling flags\n");
+	println!("Usage: makegen [language code] [target name] [source file(s)] ...");
+	println!("\tIf necessary: ... [header file(s)] [compiler flag(s)] [extra target(s)] ...");
+
+	println!("\nLanguage Codes:\n\t-c\t\tC programming language\n\t-cpp\t\tC++ programming language");
+
+	println!("\nTarget Name:\n\tThe wanted name for the executable of the program\n\n\tEx: a.out");
+
+	println!("\nSource File(s):\n\tAll necessary files for the program with the appropriate file extension\n\n\t.c for C programs\n\t.cpp for C++ programs");
+
+	println!("\nHeader File(s):\n\tAll necessary .h files for the program");
+
+	println!("\nCompiler Flag(s):\n\tAppropriate compiler flags for the programming language you are compiling.\n\n\t-default (for C programs)\t\t-std=c99 -Wall -pedantic\n\t-default (for C++ programs)\t\t-std=c++1z -Wall -pedantic");
+
+	println!("\nExtra Target(s):\n\tArguments for another program\n\t-new\t\tSpecify that arguments after will be for another program\n\n\tNext arguments follow the same procedure ([language code] [target name] etc.)");
+
+	println!("\nC Example: makegen -c a.out main.c functions.c header.h -std=c99 -Wall\nC++ Example: makegen -cpp myProgram -default header.h main.cpp functions.cpp");
+
+	println!("\nArgument order only matters for language code and target name");
+	std::process::exit(1);
 }
