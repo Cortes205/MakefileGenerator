@@ -7,7 +7,6 @@ Current Goals:
 * Avoid creating duplicate source file compilations
 * Learn more about Rust file handling and refactor the code
 * Refactor loops in the main function
-* Allow for some other languages to be used (asm, rust, etc.)
 
 ## Setup
 ### Project Folder
@@ -135,5 +134,7 @@ In the worst case, you will be told that there is an error in your arguments
 
 ## About This Project
 This project was a way for me to learn the Rust programming langauge while solving a personal problem of mine. The majority of my programming classes in school are done in C and I hate writing makefiles for the 10+ source files I have to create. I mean, who doesn't? Yes, there are online tools that already generate makefiles, but there's no learning in that, so they're not fun! With this mini-project, I am learning yet another embedded systems language, how to code in vim, more about git, what makes a good CLI tool, and the command path on Mac. The learning never stops!
+
+While I would love to create support for more languages, due to time and C/C++ being the most common use case, I will stop there for now!  However, I really enjoyed making this project, so I will always come back and add features where I see fit. I will be using this tool, especially during school!
 
 [LinkedIn](https://www.linkedin.com/in/cortes205/)
