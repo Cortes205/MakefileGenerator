@@ -40,9 +40,11 @@ fn main() {
 	let sources : &mut Vec<Vec<String>> = &mut Vec::new();
 
 	// TODO: Error handling with files
-	let file = &mut std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
+	
+	create_targets(args, objects, sources, 0);
 
-	create_targets(args, file, objects, sources, 0);
+	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
+
 
 	// TODO: Try to combine these next three loops somehow
 	// Write the all command for each target file
@@ -121,11 +123,10 @@ fn main() {
 * Writes all necessary variables to the makefile
 * @param args Command line arguments
 * @param file makefile that will be created
-* @param objects 2D Vector storing object file names for the nth target
 * @param sources 2D Vector storing source file names for the nth target
 * @param target nth target - the target we are currently creating (0-Indexed)
 */
-fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut Vec<Vec<String>>, sources : &mut Vec<Vec<String>>, target : usize) {	
+fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources : &mut Vec<Vec<String>>, target : usize) {	
 	if args.len() < 4 {
 		println!("makegen: More arguments required for target #{} (minimum arguments: language, executable, source file(s)).\nUse 'makegen -h' for more info.", target+1);
 		std::process::exit(1);
@@ -190,7 +191,7 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 							println!("makegen: no source files given for target #{}", target+1);
 							std::process::exit(1);
 						}
-						create_targets(args[i..args.len()].to_vec(), file, objects, sources, target+1);
+						create_targets(args[i..args.len()].to_vec(), objects, sources, target+1);
 						break;
 					// Default flags
 					} else if curr == "-default" {
@@ -240,10 +241,13 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 				println!("makegen: no source files given for target #{}", target+1);
 				std::process::exit(1);
 			}
-			// Clear the file now that we have all necessary data
-			file.set_len(0).unwrap();
 		}	
 	}
+
+	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
+	// Clear the file now that we have all necessary data
+	file.set_len(0).unwrap();
+
 
 	// Write out all the variables
 	obj_var.push_str("\n");
@@ -254,5 +258,5 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 	file.write_all(header_files.as_bytes()).unwrap();
 	file.write_all(flags.as_bytes()).unwrap();
 	file.write_all(b"\n\n").unwrap();
-
+	drop(file);	
 }
