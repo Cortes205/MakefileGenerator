@@ -27,8 +27,6 @@ fn main() {
 
 	create_targets(args, file, objects, object_map, sources, 0);
 
-	// TODO: Try to combine these next two loops somehow
-
 	// Write the all command for each target file
 	file.write_all(b"all:").unwrap();
 	for i in 0..objects.len() {
@@ -264,10 +262,7 @@ fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut 
 * @param file The file we are checking/deleting
 */
 fn delete_file(_file : &mut std::fs::File) {
-/*	let file_reader = std::io::BufRead::new(file);
-	if file_reader.lines().is_empty() {
-		println!("get fucked");
-	} */
+	
 }
 
 /**
