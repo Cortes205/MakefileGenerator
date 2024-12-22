@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::collections::HashMap;
 
 /**
 * Compiler flags when using the argument '-default'
@@ -38,10 +39,11 @@ fn main() {
 
 	let objects : &mut Vec<Vec<String>> = &mut Vec::new();
 	let sources : &mut Vec<Vec<String>> = &mut Vec::new();
+	let object_map : &mut HashMap<String, String> = &mut HashMap::new();
 
 	// TODO: Error handling with files
 	
-	create_targets(args, objects, sources, 0);
+	create_targets(args, objects, object_map, sources, 0);
 
 	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
 
@@ -59,26 +61,22 @@ fn main() {
 	}
 	file.write_all(b"\n\n").unwrap();
 
-	// Write the target files + all source files underneath
-	// TODO: Avoid writing duplicate source file compilations - Thinking HashMap
+	// Write the target files + all source files underneath	
 	let mut all_outs : String = "".to_string();
 	for i in 0..objects.len() {
 		let mut out : String = "${OUT".to_string();
 		let mut obj : String = " ${OBJ".to_string();
 		let mut flags : String = "\n\t${CFLAGS".to_string();
-		let mut heads : String = " ${HEADS".to_string();
 
 		if i != 0 {
 			out.push_str(&i.to_string());
 			obj.push_str(&i.to_string());
 			flags.push_str(&i.to_string());
-			heads.push_str(&i.to_string());
 		}
 
 		out.push_str("}");
 		obj.push_str("}");
 		flags.push_str("}");
-		heads.push_str("}");
 
 		// Compilation of target
 		file.write_all(out.as_bytes()).unwrap();
@@ -94,15 +92,20 @@ fn main() {
 		file.write_all(b"\n\n").unwrap();
 		
 		// Compilation of source files
-		for j in 0..objects[i].len() {	
-			file.write_all(objects[i][j].as_bytes()).unwrap();
-			file.write_all(b": ").unwrap();
-			file.write_all(sources[i][j].as_bytes()).unwrap();
-			file.write_all(heads.as_bytes()).unwrap();
-			file.write_all(flags.as_bytes()).unwrap();
-			file.write_all(b" -c ").unwrap();
-			file.write_all(sources[i][j].as_bytes()).unwrap();
-			file.write_all(b"\n\n").unwrap();
+		for j in 0..objects[i].len() {
+			if object_map.contains_key(&objects[i][j]) {
+				let heads : String = object_map.remove(&objects[i][j]).unwrap().to_string();
+				file.write_all(objects[i][j].as_bytes()).unwrap();
+				file.write_all(b": ").unwrap();
+				file.write_all(sources[i][j].as_bytes()).unwrap();
+
+				file.write_all(heads.as_bytes()).unwrap();
+
+				file.write_all(flags.as_bytes()).unwrap();
+				file.write_all(b" -c ").unwrap();
+				file.write_all(sources[i][j].as_bytes()).unwrap();
+				file.write_all(b"\n\n").unwrap();
+			}
 		}
 
 		// Create list of targets for clean command
@@ -126,7 +129,7 @@ fn main() {
 * @param sources 2D Vector storing source file names for the nth target
 * @param target nth target - the target we are currently creating (0-Indexed)
 */
-fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources : &mut Vec<Vec<String>>, target : usize) {	
+fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, object_map : &mut HashMap<String, String>, sources : &mut Vec<Vec<String>>, target : usize) {	
 	if args.len() < 4 {
 		println!("makegen: More arguments required for target #{} (minimum arguments: language, executable, source file(s)).\nUse 'makegen -h' for more info.", target+1);
 		std::process::exit(1);
@@ -191,7 +194,7 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 							println!("makegen: no source files given for target #{}", target+1);
 							std::process::exit(1);
 						}
-						create_targets(args[i..args.len()].to_vec(), objects, sources, target+1);
+						create_targets(args[i..args.len()].to_vec(), objects, object_map, sources, target+1);
 						break;
 					// Default flags
 					} else if curr == "-default" {
@@ -229,7 +232,20 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 					obj_var.push_str(&obj_name);
 
 					// Assign current object to current target
-					objects[target].push(obj_name);
+					objects[target].push(obj_name.clone());
+
+					// Assign current object to list of header file dependencies
+					let mut heads : String = " ${HEADS".to_string();
+					if target != 0 {
+						heads.push_str(&target.to_string());
+					}
+					heads.push_str("}");
+
+					if object_map.contains_key(&obj_name) {
+						let return_val : String = object_map.remove(&obj_name).unwrap().to_string();
+						heads.push_str(&return_val);	
+					}
+					object_map.insert(obj_name, heads);
 				}
 			}	
 		}
@@ -247,7 +263,6 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
 	// Clear the file now that we have all necessary data
 	file.set_len(0).unwrap();
-
 
 	// Write out all the variables
 	obj_var.push_str("\n");
