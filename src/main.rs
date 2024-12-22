@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::collections::HashMap;
 
 /**
 * Compiler flags when using the argument '-default'
@@ -19,12 +20,12 @@ fn main() {
 
 	let objects : &mut Vec<Vec<String>> = &mut Vec::new();
 	let sources : &mut Vec<Vec<String>> = &mut Vec::new();
+	let object_map : &mut HashMap<String, String> = &mut HashMap::new();
 		
-	create_targets(args, objects, sources, 0);
-
 	// TODO: Error handling with files
-	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
+	let file = &mut std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
 
+	create_targets(args, file, objects, object_map, sources, 0);
 
 	// TODO: Try to combine these next two loops somehow
 
@@ -40,26 +41,22 @@ fn main() {
 	}
 	file.write_all(b"\n\n").unwrap();
 
-	// Write the target files + all source files underneath
-	// TODO: Avoid writing duplicate source file compilations - Thinking HashMap
+	// Write the target files + all source files underneath	
 	let mut all_outs : String = "".to_string();
 	for i in 0..objects.len() {
 		let mut out : String = "${OUT".to_string();
 		let mut obj : String = " ${OBJ".to_string();
 		let mut flags : String = "\n\t${CFLAGS".to_string();
-		let mut heads : String = " ${HEADS".to_string();
 
 		if i != 0 {
 			out.push_str(&i.to_string());
 			obj.push_str(&i.to_string());
 			flags.push_str(&i.to_string());
-			heads.push_str(&i.to_string());
 		}
 
 		out.push_str("}");
 		obj.push_str("}");
 		flags.push_str("}");
-		heads.push_str("}");
 
 		// Compilation of target
 		file.write_all(out.as_bytes()).unwrap();
@@ -75,15 +72,19 @@ fn main() {
 		file.write_all(b"\n\n").unwrap();
 		
 		// Compilation of source files
-		for j in 0..objects[i].len() {	
-			file.write_all(objects[i][j].as_bytes()).unwrap();
-			file.write_all(b": ").unwrap();
-			file.write_all(sources[i][j].as_bytes()).unwrap();
-			file.write_all(heads.as_bytes()).unwrap();
-			file.write_all(flags.as_bytes()).unwrap();
-			file.write_all(b" -c ").unwrap();
-			file.write_all(sources[i][j].as_bytes()).unwrap();
-			file.write_all(b"\n\n").unwrap();
+		for j in 0..objects[i].len() {
+			if object_map.contains_key(&objects[i][j]) {
+				let heads : String = object_map.remove(&objects[i][j]).unwrap().to_string();
+
+				file.write_all(objects[i][j].as_bytes()).unwrap();
+				file.write_all(b": ").unwrap();
+				file.write_all(sources[i][j].as_bytes()).unwrap();
+				file.write_all(heads.as_bytes()).unwrap();
+				file.write_all(flags.as_bytes()).unwrap();
+				file.write_all(b" -c ").unwrap();
+				file.write_all(sources[i][j].as_bytes()).unwrap();
+				file.write_all(b"\n\n").unwrap();
+			}
 		}
 
 		// Create list of targets for clean command
@@ -108,9 +109,10 @@ fn main() {
 * @param sources 2D Vector storing source file names for the nth target
 * @param target nth target - the target we are currently creating (0-Indexed)
 */
-fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources : &mut Vec<Vec<String>>, target : usize) {	
+fn create_targets(args : Vec<String>, file : &mut std::fs::File, objects : &mut Vec<Vec<String>>, object_map : &mut HashMap<String, String>, sources : &mut Vec<Vec<String>>, target : usize) {	
 	if args.len() < 4 {
 		println!("makegen: More arguments required for target #{} (minimum arguments: language, executable, source file(s)).\nUse 'makegen -h' for more info.", target+1);
+		delete_file(file);
 		std::process::exit(1);
 	}
 
@@ -151,6 +153,7 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 				language = 1;
 			} else {
 				println!("makegen: {} is not a known langauge code", curr);
+				delete_file(file);
 				std::process::exit(1);
 			}
 		// Second argument MUST be the target file
@@ -160,9 +163,11 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 			// If this argument doesn't have a valid file extension nor is a flag/command
 			if language == 0 && curr[curr.len()-2..curr.len()] != *".c" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
 				println!("makegen: {} has an invalid file type - ensure source files have the extension .c or .h", curr);
+				delete_file(file);
 				std::process::exit(1);
 			} else if language == 1 && curr[curr.len()-4..curr.len()] != *".cpp" && curr[curr.len()-2..curr.len()] != *".h" && curr.chars().nth(0) != Some('-') {
 				println!("makegen: {} has an invalid file type - ensure source files have the extension .cpp or .h", curr);
+				delete_file(file);
 				std::process::exit(1);
 			} else {
 				if curr.chars().nth(0) == Some('-') {
@@ -171,9 +176,10 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 						// Ensure a source file was provided for previous target before proceeding
 						if sources[target].len() == 0 {
 							println!("makegen: no source files given for target #{}", target+1);
+							delete_file(file);
 							std::process::exit(1);
 						}
-						create_targets(args[i..args.len()].to_vec(), objects, sources, target+1);
+						create_targets(args[i..args.len()].to_vec(), file, objects, object_map, sources, target+1);
 						break;
 					// Default flags
 					} else if curr == "-default" {
@@ -211,7 +217,20 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 					obj_var.push_str(&obj_name);
 
 					// Assign current object to current target
-					objects[target].push(obj_name);
+					objects[target].push(obj_name.clone());
+
+					// Assign current object to list of header file dependencies
+					let mut heads : String = " ${HEADS".to_string();
+					if target != 0 {
+						heads.push_str(&target.to_string());
+					}
+					heads.push_str("}");
+
+					if object_map.contains_key(&obj_name) {
+						let return_val : String = object_map.remove(&obj_name).unwrap().to_string();
+						heads.push_str(&return_val);	
+					}
+					object_map.insert(obj_name, heads);
 				}
 			}	
 		}
@@ -221,16 +240,14 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 		if i == args.len()-1 {
 			if sources[target].len() == 0 {
 				println!("makegen: no source files given for target #{}", target+1);
+				delete_file(file);
 				std::process::exit(1);
 			}
+			// Clear the file now that we have all necessary data
+			file.set_len(0).unwrap();
 		}	
 	}
-
-	let mut file = std::fs::OpenOptions::new().write(true).append(true).create(true).open("makefile").unwrap();
-	// Clear the file now that we have all necessary data
-	file.set_len(0).unwrap();
-
-
+		
 	// Write out all the variables
 	obj_var.push_str("\n");
 	file.write_all(obj_var.as_bytes()).unwrap();
@@ -240,7 +257,17 @@ fn create_targets(args : Vec<String>, objects : &mut Vec<Vec<String>>, sources :
 	file.write_all(header_files.as_bytes()).unwrap();
 	file.write_all(flags.as_bytes()).unwrap();
 	file.write_all(b"\n\n").unwrap();
-	drop(file);	
+}
+
+/**
+* Delete the given file if it is empty
+* @param file The file we are checking/deleting
+*/
+fn delete_file(_file : &mut std::fs::File) {
+/*	let file_reader = std::io::BufRead::new(file);
+	if file_reader.lines().is_empty() {
+		println!("get fucked");
+	} */
 }
 
 /**
