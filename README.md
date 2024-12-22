@@ -1,12 +1,10 @@
 # Makefile Generator
 CLI tool written in Rust to generate makefiles for compiling programs.
 
-This tool is ***unfinished*** but is fully functional in creating makefiles for C and C++ programs.
+This tool is is fully functional in creating makefiles for C and C++ programs.
 
 Current Goals:
-* Avoid creating duplicate source file compilations
 * Learn more about Rust file handling and refactor the code
-* Refactor loops in the main function
 
 ## Setup
 ### Project Folder
@@ -58,17 +56,17 @@ makegen -h
 
 Otherwise, to make use of the tool, use the command:
 ```sh
-makegen -c <target filename> <source files> <header files> -<flags>
+makegen <language code> <target filename> <source files> <header files> <flags>
 ```
 
 If you'd like to create multiple targets, use the '-new' command then follow the same argument format. Example:
 ```sh
-makegen -c <target filename> <source files> <header files> -<flags> -new -c <second target> <source files> <header files> -<flags>
+makegen <language code> <target filename> <source files> <header files> -<flags> -new -c <second target> <source files> <header files> <flags>
 ```
 
 The order of arguments only matters for the first two.
 
-* -c indicates you are going to be compiling a C program (another option is -cpp for C++)
+* The language code indicates the language of the program you want to compile (-c for C or -cpp for C++)
 * The target file must be the second argument (it will automatically be put into a folder named bin)
 * Source files, header files, and compiler flags can be ordered in any way, but they follow a few rules:
 
